@@ -46,3 +46,20 @@ def GetPatientByIdentifier(patientSystem, patientValue):
     except Exception as e:
         print("Error in GetPatientByIdentifier:", e)
         return "notFound", None
+
+def read_service_request(service_request_id: str) -> dict:
+    """
+    Recupera una solicitud de servicio a partir de su ID.
+    """
+    try:
+        query = {"_id": ObjectId(service_request_id)}
+    except Exception as e:
+        print("Error al convertir el ID:", e)
+        return None
+
+    service_request = service_requests_collection.find_one(query)
+    if service_request:
+        service_request["_id"] = str(service_request["_id"])
+        return service_request
+    else:
+        return None
