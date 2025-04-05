@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, Request
 import uvicorn
-from app.controlador.PatientCrud import GetPatientById,GetPatientByIdentifier,WritePatient
+from app.controlador.PatientCrud import GetPatientById,get_patient_by_identifier,WritePatient
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
