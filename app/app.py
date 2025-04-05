@@ -56,3 +56,16 @@ async def add_patient(request: Request):
 if __name__ == '__main__':
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
+@app.post("/service-request", response_model=dict)
+async def add_service_request(request: Request):
+    # Obtiene el JSON enviado en la solicitud POST
+    service_request_data = await request.json()
+    
+    # Llama a la función que inserta la solicitud en la base de datos
+    status, service_request_id = WriteServiceRequest(service_request_data)
+    
+    if status == "success":
+        return {"_id": service_request_id}
+    else:
+        raise HTTPException(status_code=500, detail=f"Error al registrar la solicitud: {status}")

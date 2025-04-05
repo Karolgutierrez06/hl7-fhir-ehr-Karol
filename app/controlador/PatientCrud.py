@@ -63,3 +63,12 @@ def read_service_request(service_request_id: str) -> dict:
         return service_request
     else:
         return None
+
+def WriteServiceRequest(service_request_data: dict):
+    try:
+        # Inserta la solicitud en la colección configurada para solicitudes de servicio
+        result = service_requests_collection.insert_one(service_request_data)
+        return "success", str(result.inserted_id)
+    except Exception as e:
+        print("Error in WriteServiceRequest:", e)
+        return "error", None
