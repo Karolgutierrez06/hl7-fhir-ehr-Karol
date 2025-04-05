@@ -28,12 +28,21 @@ def WritePatient(patient_dict: dict):
     else:
         return "errorInserting", None
 
-def get_patient_by_identifier (patientSystem, patientValue):
+
+def GetPatientByIdentifier(patientSystem, patientValue):
     try:
-        patient = collection.find_one({"identifier.system": patientSystem, "identifier.value": patientValue})
+        patient = collection.find_one({
+            "identifier": {
+                "$elemMatch": {
+                    "system": patientSystem,
+                    "value": patientValue
+                }
+            }
+        })
         if patient:
             patient["_id"] = str(patient["_id"])
             return "success", patient
         return "notFound", None
     except Exception as e:
-        return f"error: (str(e))", None
+        print("Error in GetPatientByIdentifier:", e)
+        return "notFound", None
