@@ -7,6 +7,8 @@ import json
 collection = connect_to_mongodb("SamplePatientService", "Patient")
 service_requests_collection = connect_to_mongodb("SamplePatientService", "service_requests")
 appointments_collection = connect_to_mongodb("SamplePatientService", "appointments")  # NUEVO
+procedure_collection = connect_to_mongodb("SamplePatientService", "procedures")  # NUEVO
+medication_request_collection = connect_to_mongodb("SamplePatientService", "medication_requests")  # NUEVO
 
 # Obtener paciente por ID
 def GetPatientById(patient_id: str):
@@ -17,7 +19,7 @@ def GetPatientById(patient_id: str):
             return "success", patient
         return "notFound", None
     except Exception as e:
-        return f"notFound", None
+        return "notFound", None
 
 # Escribir nuevo paciente
 def WritePatient(patient_dict: dict):
@@ -76,11 +78,29 @@ def WriteServiceRequest(service_request_data: dict):
         print("Error in WriteServiceRequest:", e)
         return "error", None
 
-# ✅ NUEVO: Guardar cita quirúrgica (Appointment)
+# Guardar cita quirúrgica (Appointment)
 def WriteAppointment(appointment_data: dict):
     try:
         result = appointments_collection.insert_one(appointment_data)
         return "success", str(result.inserted_id)
     except Exception as e:
         print("Error in WriteAppointment:", e)
+        return "error", None
+
+# Guardar un recurso Procedure
+def WriteProcedure(procedure_data: dict):
+    try:
+        result = procedure_collection.insert_one(procedure_data)
+        return "success", str(result.inserted_id)
+    except Exception as e:
+        print("Error en WriteProcedure:", e)
+        return "error", None
+
+# Guardar un recurso MedicationRequest
+def WriteMedicationRequest(medication_request_data: dict):
+    try:
+        result = medication_request_collection.insert_one(medication_request_data)
+        return "success", str(result.inserted_id)
+    except Exception as e:
+        print("Error en WriteMedicationRequest:", e)
         return "error", None
