@@ -6,7 +6,9 @@ from app.controlador.PatientCrud import (
     WritePatient,
     read_service_request,
     WriteServiceRequest,
-    WriteAppointment  # NUEVA FUNCIÓN IMPORTADA
+    WriteAppointment,
+    WriteProcedure,
+    WriteMedicationRequest
 )
 
 app = FastAPI()
@@ -79,6 +81,33 @@ async def add_appointment(request: Request):
         return {"id": appointment_id}
     else:
         raise HTTPException(status_code=500, detail=f"Error al registrar la cita: {status}")
+
+# ----------------------- NUEVA RUTA: /procedure ----------------------------
+
+@app.post("/procedure", response_model=dict)
+async def add_procedure_with_medication(request: Request):
+    try:
+        data = await request.json()
+        procedure = data.get("procedure")
+        medication_request = data.get("medicationRequest")
+
+        if not procedure or not medication_request:
+            raise HTTPException(status_code=400, detail="Faltan datos de procedure o medicationRequest")
+
+        # Guardar procedimiento
+        status_proc, proc_id = WriteProcedure(procedure)
+        if status_proc != "success":
+            raise HTTPException(status_code=500, detail="Error al registrar el procedimiento")
+
+        # Guardar prescripción
+        status_med, med_id = WriteMedicationRequest(medication_request)
+        if status_med != "success":
+            raise HTTPException(status_code=500, detail="Error al registrar la prescripción")
+
+        return {"procedure_id": proc_id, "medication_id": med_id}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error inesperado: {str(e)}")
 
 # ------------------------ INICIO MANUAL (opcional) ----------------------------
 
