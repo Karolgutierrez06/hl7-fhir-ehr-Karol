@@ -1,24 +1,26 @@
-from fastapi import FastAPI, HTTPException, Request, Body
-import uvicorn
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from app.controlador.PatientCrud import (
     GetPatientById,
     GetPatientByIdentifier,
     WritePatient,
     read_service_request,
-    WriteServiceRequest
+    WriteServiceRequest,
+    WriteAppointment  # NUEVA FUNCIÓN IMPORTADA
 )
-from fastapi.middleware.cors import CORSMiddleware
-import uuid
 
 app = FastAPI()
 
+# Middleware para permitir CORS desde cualquier origen
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Permitir solo este dominio (ajustar en producción)
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"],  # Permitir todos los métodos (GET, POST, etc.)
-    allow_headers=["*"],  # Permitir todos los encabezados
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
+
+# ----------------------- RUTAS EXISTENTES ----------------------------
 
 @app.get("/patient/{patient_id}", response_model=dict)
 async def get_patient_by_id(patient_id: str):
@@ -41,14 +43,6 @@ async def get_patient_by_identifier(system: str, value: str):
     else:
         raise HTTPException(status_code=500, detail=f"Internal error. {status}")
 
-@app.get("/service-request/{service_request_id}", response_model=dict)
-async def get_service_request(service_request_id: str):
-    service_request = read_service_request(service_request_id)
-    if service_request:
-        return service_request
-    else:
-        raise HTTPException(status_code=404, detail="Solicitud de servicio no encontrada")
-
 @app.post("/patient", response_model=dict)
 async def add_patient(request: Request):
     new_patient_dict = dict(await request.json())
@@ -57,6 +51,14 @@ async def add_patient(request: Request):
         return {"_id": patient_id}
     else:
         raise HTTPException(status_code=500, detail=f"Validating error: {status}")
+
+@app.get("/service-request/{service_request_id}", response_model=dict)
+async def get_service_request(service_request_id: str):
+    service_request = read_service_request(service_request_id)
+    if service_request:
+        return service_request
+    else:
+        raise HTTPException(status_code=404, detail="Solicitud de servicio no encontrada")
 
 @app.post("/service-request", response_model=dict)
 async def add_service_request(request: Request):
@@ -67,19 +69,19 @@ async def add_service_request(request: Request):
     else:
         raise HTTPException(status_code=500, detail=f"Error al registrar la solicitud: {status}")
 
-# --- NUEVO ENDPOINT PARA APPOINTMENT ---
+# ----------------------- NUEVA RUTA: /appointment ----------------------------
+
 @app.post("/appointment", response_model=dict)
-async def add_appointment(appointment: dict = Body(...)):
-    """
-    Endpoint para crear citas quirúrgicas (Appointment).
-    Actualmente simula almacenamiento generando un ID único.
-    """
-    print("Recibí appointment:", appointment)
-    
-    # Aquí implementa la lógica para guardar la cita en tu BD
-    appointment_id = str(uuid.uuid4())  # Generar un ID único
-    
-    return {"id": appointment_id, "appointment": appointment}
+async def add_appointment(request: Request):
+    appointment_data = await request.json()
+    status, appointment_id = WriteAppointment(appointment_data)
+    if status == "success":
+        return {"id": appointment_id}
+    else:
+        raise HTTPException(status_code=500, detail=f"Error al registrar la cita: {status}")
+
+# ------------------------ INICIO MANUAL (opcional) ----------------------------
 
 if __name__ == '__main__':
+    import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
